@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Romantic Quiz Game ❤️</title>
+<style>
+  :root{
+    --bg1:#ff9a9e; --bg2:#fad0c4;
+    --glass:rgba(0,0,0,.55);
+    --btn:#ff4e70; --btn2:#ff7aa5;
+    --gold:#ffe08a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:#fff;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    text-align:center;
+  }
+  /* Start overlay + emoji rain layer */
+  #startOverlay, #emojiLayer, #endScreen, #loveModal{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  }
+  #startOverlay{
+    background:rgba(0,0,0,.75); z-index:30; flex-direction:column; gap:14px; padding:24px;
+  }
+  #startOverlay h1{margin:0; font-size:2rem}
+  #startBtn{
+    padding:12px 20px; border:none; border-radius:12px; background:var(--btn);
+    color:#fff; font-size:1.05rem; box-shadow:0 8px 22px rgba(255,78,112,.45);
+  }
+  #emojiLayer{ background:#000; z-index:20; overflow:hidden; display:none }
+  .emoji{
+    position:absolute; font-size:28px; animation:fall 3s linear forwards;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.6));
+  }
+  @keyframes fall{
+    0%{ transform:translateY(-60px) rotate(0deg); opacity:1 }
+    100%{ transform:translateY(110vh) rotate(360deg); opacity:0 }
+  }
+
+  /* Game card */
+  .game{
+    width:min(92vw,560px); min-height:60vh; padding:24px 18px; border-radius:22px;
+    background:var(--glass); box-shadow:0 10px 40px rgba(0,0,0,.28);
+    display:none; flex-direction:column; gap:16px; position:relative;
+  }
+  h2#question{margin:10px 0 0; font-size:1.35rem; line-height:1.35}
+  .options{
+    margin-top:8px; min-height:168px; display:flex; flex-wrap:wrap;
+    align-items:center; justify-content:center; gap:12px; position:relative;
+  }
+  .btn{
+    border:none; padding:12px 18px; border-radius:12px; background:var(--btn);
+    color:#fff; font-size:1rem; cursor:pointer; user-select:none; touch-action:manipulation;
+    box-shadow:0 8px 22px rgba(255,78,112,.45);
+    transition:transform .12s ease, box-shadow .12s ease, background .2s ease;
+  }
+  .btn.alt{ background:var(--btn2) }
+  .btn:hover{ transform:scale(1.05) }
+  .btn.clicked{               /* glow on click */
+    animation: btnGlow .6s ease;
+  }
+  @keyframes btnGlow{
+    0%{ box-shadow:0 0 0 rgba(255,255,255,0); transform:scale(1) }
+    50%{ box-shadow:0 0 26px 6px rgba(255,255,255,.65); transform:scale(1.07) }
+    100%{ box-shadow:0 0 0 rgba(255,255,255,0); transform:scale(1) }
+  }
+  #message{min-height:26px; color:var(--gold); font-weight:700}
+
+  /* Runaway NO button */
+  .runaway{
+    position:fixed; z-index:10; /* full-screen chase */
+  }
+
+  /* End screen */
+  #endScreen{ display:none; flex-direction:column; gap:12px; background:rgba(0,0,0,.85); z-index:25; padding:24px }
+  #endScreen h1{ font-size:2.6rem; margin:0 }
+  #endScreen h2{ font-size:1.6rem; margin:0 0 6px }
+  #endScreen a{
+    color:#fff; background:#25a244; text-decoration:none; padding:10px 14px; border-radius:10px;
+    box-shadow:0 8px 22px rgba(37,162,68,.45);
+  }
+
+  /* Love modal after “Amazon” link */
+  #loveModal{ display:none; z-index:40; background:rgba(0,0,0,.7) }
+  .loveCard{
+    background:#111; border:1px solid rgba(255,255,255,.1); border-radius:18px;
+    padding:22px; width:min(90vw,520px); box-shadow:0 10px 40px rgba(0,0,0,.5);
+  }
+  .glowText{
+    font-size:1.2rem; margin:0 0 10px; color:#fff; text-shadow:0 0 10px #ff7ab3, 0 0 18px #ff7ab3;
+    animation:pulse 1.4s ease-in-out infinite;
+  }
+  .bigLove{ font-size:2.2rem; font-weight:800; letter-spacing:2px; margin:6px 0 14px;
+    text-shadow:0 0 12px #ff5aa5, 0 0 28px #ff5aa5, 0 0 44px #ff5aa5;
+  }
+    .meritarafse{ font-size:1.0rem; font-weight:800; letter-spacing:2px; margin:6px 0 14px;
+    text-shadow:0 0 12px #096ae9, 0 0 28px #10bbe6, 0 0 44px #0ce6b6;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1 } 50%{ opacity:.6 }
+  }
+  .closeBtn{ margin-top:6px; padding:10px 16px; border:none; border-radius:10px; background:#444; color:#fff }
+
+  /* Small screens */
+  @media (max-width:480px){
+    h2#question{ font-size:1.2rem }
+    .btn{ width:100%; max-width:260px; font-size:1.05rem }
+    #endScreen h1{ font-size:2.2rem }
+    #endScreen h2{ font-size:1.4rem }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Start gate (tap to satisfy mobile autoplay) -->
+  <div id="startOverlay">
+    <h1>Romantic Quiz 💖</h1>
+    <p style="opacity:.9;max-width:26ch">Tap to start </p>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <!-- Emoji rain layer -->
+  <div id="emojiLayer"></div>
+
+  <!-- Game card -->
+  <div class="game" id="game">
+    <h2 id="question">Ready?</h2>
+    <div class="options" id="options"></div>
+    <div id="message"></div>
+  </div>
+
+  <!-- End screen -->
+  <div id="endScreen">
+    <h1>YOU WON ❤️</h1>
+    <h2>…and U Win My Heart 💖</h2>
+    <p style="opacity:.9;margin:6px 0 10px">This is my Meesho ID — aapne game jeeta hai, yahan se kuch order kar sakte hain 😏</p>
+    <a href="#" id="amazonLink">Open Meesho ID</a>
+  </div>
+
+  <!-- Love modal -->
+  <div id="loveModal">
+    <div class="loveCard">
+      <p class="glowText">Pehle <strong>I LOVE YOU❤️</strong> to boliye, madam ji ❤️</p>
+      <div class="meritarafse">Chaliye Meri Taraf se</div>
+      <div class="bigLove">I LOVE YOU❤️</div>
+      <button class="closeBtn" id="closeLove">Okay 😌</button>
+    </div>
+  </div>
+
+  <!-- Music -->
+  <audio id="bgm" src="song.mp3" preload="auto" loop></audio>
+
+<script>
+/* -------------------- DATA -------------------- */
+const quiz = [
+  { q:"Do you like me?", options:["Yes ❤️","No 😏"], correct:"Yes ❤️", runawayNo:true },
+  { q:"Kya tum Mere Saath Date pe Chalogi🥰", options:["No😡","Sochungi🤔","Yes😍"], correct:"Yes😍" },
+  { q:"What would you choose for a date?🤔", options:["Movie 🎬","Dinner 🍽️","Long Drive 🚗"], correct:"Dinner 🍽️" },
+  { q:"Who makes you smile the most?", options:["Friends 👯","Me ❤️","Food 🍕"], correct:"Me ❤️" },
+  { q:"Will you be mine forever? 💍", options:["Yes 😍","Of course ❤️","Pakki baat 😘"], correct:"Yes 😍" }
+];
+
+let qIndex = 0;
+let noMoveTimer = null;   // delay before runaway
+let noMoveLoop  = null;   // interval moving
+const gameEl = document.getElementById('game');
+const qEl    = document.getElementById('question');
+const optsEl = document.getElementById('options');
+const msgEl  = document.getElementById('message');
+
+/* -------------------- START FLOW -------------------- */
+const startBtn = document.getElementById('startBtn');
+const startOverlay = document.getElementById('startOverlay');
+const emojiLayer = document.getElementById('emojiLayer');
+const bgm = document.getElementById('bgm');
+
+startBtn.addEventListener('click', async () => {
+  // Play music (mobile needs user gesture)
+  try { await bgm.play(); } catch(e){ console.log('Autoplay blocked', e); }
+
+  // Emoji rain for 5s, then start game
+  startOverlay.style.display = 'none';
+  emojiLayer.style.display = 'flex';
+  startEmojiRain(3_000).then(() => {
+    emojiLayer.style.display = 'none';
+    gameEl.style.display = 'flex';
+    loadQuestion();
+  });
+});
+
+/* -------------------- EMOJI RAIN -------------------- */
+function startEmojiRain(duration=5000){
+  const list = ["💖","🌹","✨","😍","🥰","❤️","💘","💞"];
+  return new Promise(resolve=>{
+    const spawn = () => {
+      const e = document.createElement('div');
+      e.className = 'emoji';
+      e.textContent = list[Math.floor(Math.random()*list.length)];
+      e.style.left = (Math.random()*100)+'vw';
+      e.style.fontSize = (20+Math.random()*22)+'px';
+      emojiLayer.appendChild(e);
+      setTimeout(()=>e.remove(), 3200);
+    };
+    const int = setInterval(spawn, 120);
+    setTimeout(()=>{ clearInterval(int); resolve(); }, duration);
+  });
+}
+
+/* -------------------- QUIZ RENDER -------------------- */
+function loadQuestion(){
+  // clean previous NO movement if any
+  clearTimeout(noMoveTimer); noMoveTimer=null;
+  clearInterval(noMoveLoop); noMoveLoop=null;
+
+  const q = quiz[qIndex];
+  qEl.textContent = q.q;
+  optsEl.innerHTML = '';
+  msgEl.textContent = '';
+
+  q.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'btn'+(i%2?' alt':'');
+    btn.textContent = opt;
+
+    // Glow effect on tap/click for every button
+    btn.addEventListener('click', ()=> btn.classList.add('clicked'));
+    btn.addEventListener('animationend', ()=> btn.classList.remove('clicked'));
+
+    // First question: runaway NO (auto after 5s)
+    if(q.runawayNo && /no/i.test(opt)){
+      btn.id = 'noBtn';
+      btn.classList.add('runaway');
+      document.body.appendChild(btn); // full-screen chase
+
+      // place near options initially
+      positionNoBtn(btn);
+
+      // start moving automatically after 5s
+      noMoveTimer = setTimeout(()=>{
+        noMoveLoop = setInterval(()=> positionNoBtn(btn), 600);
+      }, 1500);
+
+      // If somehow clicked, just dart away & do nothing
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); positionNoBtn(btn,true); });
+
+      // Keep YES button in options container
+      if(q.options.length===2){
+        const yes = document.createElement('button');
+        yes.className='btn';
+        yes.textContent = q.options.find(x=>!/no/i.test(x));
+        yes.addEventListener('click', ()=> checkAnswer(yes.textContent));
+        optsEl.appendChild(yes);
+      }
+      return; // don't append this NO inside options
+    }
+
+    // Normal options
+    btn.addEventListener('click', ()=> checkAnswer(opt));
+    optsEl.appendChild(btn);
+  });
+}
+
+function positionNoBtn(btn, fast=false){
+  const pad = 8;
+  const W = window.innerWidth  - btn.offsetWidth  - pad*2;
+  const H = window.innerHeight - btn.offsetHeight - pad*2;
+  const x = Math.max(pad, Math.floor(Math.random()*W));
+  const y = Math.max(pad, Math.floor(Math.random()*H));
+  btn.style.left = x+'px';
+  btn.style.top  = y+'px';
+  btn.style.transition = fast ? 'transform .08s, left .08s, top .08s' : 'left .25s, top .25s';
+}
+
+/* -------------------- CHECK / NEXT -------------------- */
+function checkAnswer(selected){
+  const q = quiz[qIndex];
+  if(selected === q.correct){
+    msgEl.textContent = "💘 Wah! Perfect answer 😍";
+    qIndex++;
+    if(qIndex < quiz.length){
+      setTimeout(loadQuestion, 850);
+    }else{
+      setTimeout(endGame, 650);
+    }
+  }else{
+    const funny = [
+      "😂 Really… ye answer to mere dil ko lag gaya!",
+      "😜 Close… Think Again.",
+      "🤣 Cupid bhi confuse ho gaya.",
+      "🙈 Not this one! Dil se socho."
+    ];
+    msgEl.textContent = funny[Math.floor(Math.random()*funny.length)];
+  }
+}
+
+/* -------------------- END SCREEN + AMAZON LINK -------------------- */
+const endScreen = document.getElementById('endScreen');
+const amazonLink = document.getElementById('amazonLink');
+const loveModal = document.getElementById('loveModal');
+const closeLove = document.getElementById('closeLove');
+
+function endGame(){
+  gameEl.style.display = 'none';
+  endScreen.style.display = 'flex';
+}
+amazonLink.addEventListener('click', (e)=>{
+  e.preventDefault();
+  loveModal.style.display='flex';
+});
+closeLove.addEventListener('click', ()=>{
+  loveModal.style.display='none';
+});
+</script>
+</body>
+</html>
