@@ -248,7 +248,7 @@ function loadQuestion(){
       btn.addEventListener('click', (e)=>{ e.preventDefault(); positionNoBtn(btn,true); });
 
       // Keep YES button in options container
-      if(q.options.length===2){
+      if(q.options.length===1){
         const yes = document.createElement('button');
         yes.className='btn';
         yes.textContent = q.options.find(x=>!/no/i.test(x));
@@ -264,7 +264,7 @@ function loadQuestion(){
   });
 }
 
-function positionNoBtn(btn, fast=false){
+function positionNoBtn(btn, fast=true){
   const pad = 8;
   const W = window.innerWidth  - btn.offsetWidth  - pad*2;
   const H = window.innerHeight - btn.offsetHeight - pad*2;
@@ -317,3 +317,4 @@ closeLove.addEventListener('click', ()=>{
 </script>
 </body>
 </html>
+
