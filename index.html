@@ -53,7 +53,7 @@
     align-items:center; justify-content:center; gap:12px; position:relative;
   }
   .btn{
-    border:none; padding:12px 18px; border-radius:12px; background:var(--btn);
+    border:none; padding:12px 18px; border-radius:20px; background:var(--btn);
     color:#fff; font-size:1rem; cursor:pointer; user-select:none; touch-action:manipulation;
     box-shadow:0 8px 22px rgba(255,78,112,.45);
     transition:transform .12s ease, box-shadow .12s ease, background .2s ease;
@@ -152,7 +152,7 @@
   </div>
 
   <!-- Music -->
-  <audio id="bgm" src="song.mp3" preload="auto" loop></audio>
+  <audio id="bgm" src="AMK.mp3" preload="auto" loop></audio>
 
 <script>
 /* -------------------- DATA -------------------- */
@@ -279,7 +279,7 @@ function positionNoBtn(btn, fast=false){
 function checkAnswer(selected){
   const q = quiz[qIndex];
   if(selected === q.correct){
-    msgEl.textContent = "💘 Wah! Perfect answer 😍";
+    msgEl.textContent = "💘 Correct! I Love You 😍";
     qIndex++;
     if(qIndex < quiz.length){
       setTimeout(loadQuestion, 850);
